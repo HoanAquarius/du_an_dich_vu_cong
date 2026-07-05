@@ -211,14 +211,15 @@
                                 <p class="text-[10px] text-gray-400">128.657 Hồ sơ đã tiếp nhận</p>
                             </div>
                             <!-- Card 2 (Đăng ký khai sinh - Highlight để link trang của bạn) -->
-                            <div class="bg-green-50/50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-green-50 border border-transparent hover:border-green-200 transition group relative overflow-hidden" onclick="alert('Link tới form Đăng ký khai sinh của bạn ở đây')">
+                             <a href="./thu_tuc/dang_ky_khai_sinh.php">
+                            <div class="bg-green-50/50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-green-50 border border-transparent hover:border-green-200 transition group relative overflow-hidden">
                                 <div class="absolute top-0 right-0 bg-green-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-lg">HOT</div>
                                 <div class="w-12 h-12 bg-green-100 text-green-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
                                     <i class="fa-solid fa-baby"></i>
                                 </div>
                                 <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">Đăng ký<br>khai sinh</h3>
                                 <p class="text-[10px] text-gray-400">312.029 Hồ sơ đã tiếp nhận</p>
-                            </div>
+                            </div></a>
                             <!-- Card 3 -->
                             
                             <!-- Card 4 -->
