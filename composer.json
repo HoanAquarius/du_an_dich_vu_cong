@@ -1,0 +1,17 @@
+{
+    "name": "mamin/du_an_dich_vu_cong",
+    "autoload": {
+        "psr-4": {
+            "Mamin\\DuAnDichVuCong\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Minh Hoan",
+            "email": "hoanmmpk04409@gmail.com"
+        }
+    ],
+    "require": {
+        "cboden/ratchet": "^0.4.4"
+    }
+}
