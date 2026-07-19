@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang chủ - Cổng dịch vụ công quốc gia</title>
+    <link rel="stylesheet" href="chatbot.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -280,9 +281,15 @@
                                 </button>
                             </div>
                             
-                            <button class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition shadow-md shadow-purple-200">
-                                <i class="fa-regular fa-comments"></i> Chat với trợ lý AI
-                            </button>
+                            <button
+    id="openChatbot"
+    class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition shadow-md shadow-purple-200">
+
+    <i class="fa-regular fa-comments"></i>
+
+    Chat với trợ lý AI
+
+</button>
                         </div>
                     </div>
 
@@ -375,5 +382,6 @@
             </div>
         </div>
     </div>
+    <script src="chatbot.js"></script>
 </body>
 </html>
