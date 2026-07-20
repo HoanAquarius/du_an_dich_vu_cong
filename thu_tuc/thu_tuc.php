@@ -17,7 +17,7 @@ $mockProcedures = [
     ],
     [
         'id' => 3, 'name' => 'Đăng ký khai sinh cho trẻ em', 'code' => '1.000125',
-        'linh_vuc' => 'Tư pháp - Hộ tịch', 'doi_tuong' => 'Công dân', 'co_quan' => 'UBND cấp xã', 'url' => 'gks.php'
+        'linh_vuc' => 'Tư pháp - Hộ tịch', 'doi_tuong' => 'Công dân', 'co_quan' => 'UBND cấp xã', 'url' => 'dang_ky_khai_sinh.php'
     ],
     [
         'id' => 4, 'name' => 'Cấp Hộ chiếu phổ thông', 'code' => '1.000126',
