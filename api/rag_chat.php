@@ -1,27 +1,81 @@
-<?php 
-header("Content-Type: application/json; charset=utf-8"); 
+<?php
+header("Content-Type: application/json; charset=utf-8");
 
-// 1. Thử đọc dữ liệu dạng JSON từ fetch/axios
+// 1. API Key của bạn
+$apiKey = getenv('GEMINI_API_KEY');
+if ($apiKey === '') {
+    http_response_code(500);
+    echo json_encode([
+        "reply" => "PHP chưa nhận được biến GEMINI_API_KEY. Hãy khởi động lại Apache."
+    ], JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
+// 2. Nhận dữ liệu câu hỏi
 $rawData = file_get_contents("php://input");
-$data = json_decode($rawData, true); 
+$data = json_decode($rawData, true);
+$message = trim($data["message"] ?? $_POST["message"] ?? $_GET["message"] ?? "");
 
-// 2. Lấy message từ JSON, nếu không có thì thử lấy từ $_POST (FormData) hoặc $_GET
-$message = $data["message"] ?? $_POST["message"] ?? $_GET["message"] ?? "";
-$message = strtolower(trim($message)); 
+if (empty($message)) {
+    echo json_encode(["reply" => "Vui lòng nhập nội dung câu hỏi!"], JSON_UNESCAPED_UNICODE);
+    exit();
+}
 
-$reply = "Xin lỗi, tôi chưa hiểu câu hỏi của bạn."; 
+// 3. System Instruction - Vai diễn AI
+$systemInstruction = "Bạn là Trợ lý AI thông minh của Cổng Dịch vụ công Quốc gia Việt Nam. "
+    . "Nhiệm vụ của bạn là tư vấn thủ tục hành chính (CCCD, Hộ chiếu, Khai sinh, Đăng ký kết hôn, Thuế, BHYT, v.v.) "
+    . "cho người dân một cách lịch sự, rõ ràng, dễ hiểu và chuyên nghiệp. "
+    . "Nếu người dân hỏi ngoài chủ đề hành chính/pháp luật/dịch vụ công, hãy lịch sự lái họ quay lại chủ đề chính.";
 
-// Các điều kiện kiểm tra giữ nguyên
-if (strpos($message, "cccd") !== false) { 
-    $reply = "📄 Hồ sơ cấp đổi CCCD gồm:\n\n- CCCD cũ\n- Ảnh chân dung\n- Khai thông tin cá nhân."; 
-} elseif (strpos($message, "khai sinh") !== false) { 
-    $reply = "👶 Hồ sơ khai sinh gồm:\n\n- Giấy chứng sinh\n- CCCD của cha mẹ."; 
-} elseif (strpos($message, "hộ chiếu") !== false) { 
-    $reply = "🛂 Hồ sơ cấp hộ chiếu gồm:\n\n- CCCD\n- Ảnh 4x6\n- Lệ phí."; 
-} elseif (strpos($message, "kết hôn") !== false) { 
-    $reply = "💍 Hồ sơ đăng ký kết hôn gồm:\n\n- CCCD hai bên\n- Giấy xác nhận tình trạng hôn nhân."; 
-} elseif (strpos($message, "xin chào") !== false || strpos($message, "hello") !== false) { 
-    $reply = "👋 Xin chào! Tôi là trợ lý AI của Cổng Dịch vụ công."; 
-} 
+// 4. Payload gửi lên Gemini
+$payload = [
+    "system_instruction" => [
+        "parts" => [
+            ["text" => $systemInstruction]
+        ]
+    ],
+    "contents" => [
+        [
+            "parts" => [
+                ["text" => $message]
+            ]
+        ]
+    ]
+];
 
-echo json_encode([ "reply" => $reply ], JSON_UNESCAPED_UNICODE);
+// 5. Endpoint dùng model gemini-2.0-flash mới nhất và chuẩn xác
+$endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
+$ch = curl_init();
+curl_setopt_array($ch, [
+    CURLOPT_URL => $endpoint,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_HTTPHEADER => [
+        'Content-Type: application/json',
+        'x-goog-api-key: ' . $apiKey,
+    ],
+    CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
+    CURLOPT_TIMEOUT => 30,
+]);
+
+$response = curl_exec($ch);
+$curlError = curl_error($ch);
+curl_close($ch);
+
+// 6. Trích xuất câu trả lời
+if ($curlError) {
+    $reply = "Lỗi cURL: " . $curlError;
+} else {
+    $resultData = json_decode($response, true);
+
+    if (isset($resultData['candidates'][0]['content']['parts'][0]['text'])) {
+        $reply = $resultData['candidates'][0]['content']['parts'][0]['text'];
+    } elseif (isset($resultData['error']['message'])) {
+        $reply = "Lỗi Google API: " . $resultData['error']['message'];
+    } else {
+        $reply = "Lỗi không xác định: " . $response;
+    }
+}
+
+// 7. Trả JSON về
+echo json_encode(["reply" => $reply], JSON_UNESCAPED_UNICODE);
