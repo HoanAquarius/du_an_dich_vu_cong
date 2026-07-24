@@ -2,11 +2,12 @@
 header("Content-Type: application/json; charset=utf-8");
 
 // 1. API Key của bạn
-$apiKey = getenv('GEMINI_API_KEY');
+$apiKey = trim((string) getenv('GEMINI_API_KEY'));
+
 if ($apiKey === '') {
     http_response_code(500);
     echo json_encode([
-        "reply" => "PHP chưa nhận được biến GEMINI_API_KEY. Hãy khởi động lại Apache."
+        "reply" => "Máy chủ chưa cấu hình GEMINI_API_KEY."
     ], JSON_UNESCAPED_UNICODE);
     exit();
 }
