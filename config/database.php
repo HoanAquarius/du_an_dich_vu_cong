@@ -6,34 +6,49 @@
 // =========================================================================
 
 // 1. Khai báo các hằng số cấu hình kết nối MySQL
-define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'dich_vu_cong');
-define('DB_USER', 'root');
-define('DB_PASS', ''); // Mặc định trên XAMPP là chuỗi rỗng
-define('DB_CHARSET', 'utf8mb4');
+if (!defined('DB_HOST')) define('DB_HOST', '127.0.0.1');
+if (!defined('DB_NAME')) define('DB_NAME', 'dich_vu_cong');
+if (!defined('DB_USER')) define('DB_USER', 'root');
+if (!defined('DB_PASS')) define('DB_PASS', ''); // Mặc định trên XAMPP là chuỗi rỗng
+if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
 
 /**
- * Hàm khởi tạo kết nối cơ sở dữ liệu qua PDO (Single Source of Truth)
- * @return PDO|null Trả về đối tượng PDO nếu thành công, hoặc null nếu lỗi
+ * Class Database tương thích với các file sử dụng class new Database()
  */
-function getDatabaseConnection() {
-    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
-    
-    $options = [
-        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Đẩy lỗi ra ngoại lệ để dễ kiểm soát
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // Trả về mảng key-value (tên cột)
-        PDO::ATTR_EMULATE_PREPARES   => false,                  // Tắt giả lập để tối ưu bảo mật SQL Injection
-    ];
+if (!class_exists('Database')) {
+    class Database {
+        private $host = DB_HOST;
+        private $db = DB_NAME;
+        private $user = DB_USER;
+        private $pass = DB_PASS;
+        private $charset = DB_CHARSET;
 
-    try {
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-        return $pdo;
-    } catch (\PDOException $e) {
-        // Log lỗi hoặc in ra màn hình trong môi trường Development
-        error_log("Lỗi kết nối cơ sở dữ liệu công: " . $e->getMessage());
-        die("Hệ thống dịch vụ công đang bảo trì kết nối CSDL. Vui lòng thử lại sau.");
+        public function getConnection() {
+            $dsn = "mysql:host={$this->host};dbname={$this->db};charset={$this->charset}";
+            $options = [
+                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES   => false,
+            ];
+
+            try {
+                return new PDO($dsn, $this->user, $this->pass, $options);
+            } catch (\PDOException $e) {
+                error_log("Lỗi kết nối cơ sở dữ liệu công: " . $e->getMessage());
+                die("Hệ thống dịch vụ công đang bảo trì kết nối CSDL. Vui lòng thử lại sau.");
+            }
+        }
     }
 }
 
-// Tự động kiểm tra và khởi tạo kết nối khi file này được include/require
+/**
+ * Hàm khởi tạo kết nối cơ sở dữ liệu qua PDO (Single Source of Truth)
+ * @return PDO|null Trả về đối tượng PDO nếu thành công
+ */
+function getDatabaseConnection() {
+    $db = new Database();
+    return $db->getConnection();
+}
+
+// Tự động khởi tạo biến $pdo toàn cục để hỗ trợ các file gọi trực tiếp $pdo
 $pdo = getDatabaseConnection();
