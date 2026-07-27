@@ -77,78 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="bg-[#f8fafc] text-gray-800 h-screen flex flex-col overflow-hidden">
  
-<header class="bg-[#004a99] h-16 flex items-center justify-between px-6 text-white shrink-0">
-    <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-red-600 text-yellow-300 rounded-full flex items-center justify-center font-bold shadow">
-            <i class="fa-solid fa-star text-xs"></i>
-        </div>
-        <div class="flex flex-col">
-            <span class="font-bold text-lg leading-tight">Cổng Dịch vụ công Quốc gia</span>
-            <span class="text-[10px] opacity-90">Kết nối, cung cấp thông tin và dịch vụ công mọi lúc, mọi nơi</span>
-        </div>
-    </div>
- 
-    <div class="flex items-center gap-6">
-        <div class="relative cursor-pointer">
-            <i class="fa-regular fa-bell text-white text-xl"></i>
-            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">3</span>
-        </div>
-        <div class="flex items-center gap-2 cursor-pointer">
-            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <i class="fa-solid fa-user text-white"></i>
-            </div>
-            <span class="font-medium text-sm">Nguyễn Văn A</span>
-            <i class="fa-solid fa-chevron-down text-[10px] opacity-70"></i>
-        </div>
-    </div>
-</header>
+    <?php include '../component/header.php'; ?>
+
     <div class="flex flex-1 overflow-hidden">
         
-        <aside class="w-64 bg-white border-r flex flex-col justify-between shrink-0 overflow-y-auto hidden md:flex">
-            <nav class="p-4 space-y-1">
-                <a href="../index.php" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-house w-5 text-center"></i> Trang chủ
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 bg-blue-50 text-blue-600 font-medium rounded-lg text-sm">
-                    <i class="fa-solid fa-file-lines w-5 text-center"></i> Thủ tục hành chính
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-folder w-5 text-center"></i> Hồ sơ của tôi
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-box-archive w-5 text-center"></i> Kho giấy tờ số
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-credit-card w-5 text-center"></i> Thanh toán trực tuyến
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-circle-info w-5 text-center"></i> Hướng dẫn sử dụng
-                </a>
-                <div class="flex items-center justify-between px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm cursor-pointer">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-regular fa-bell w-5 text-center"></i> Thông báo
-                    </div>
-                    <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">5</span>
-                </div>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-regular fa-circle-question w-5 text-center"></i> Hỗ trợ
-                </a>
-            </nav>
-            <div class="p-4 border-t">
-                <div class="flex items-center gap-3 p-3 border rounded-lg mb-2">
-                    <div class="w-10 h-10 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <div>
-                        <div class="font-bold text-sm">Nguyễn Văn A</div>
-                        <div class="text-xs text-gray-500">Công dân</div>
-                    </div>
-                </div>
-                <button class="w-full flex items-center gap-2 justify-center py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
-                </button>
-            </div>
-        </aside>
+        <?php 
+            $base_path = '../';
+            $active_page = 'thu_tuc';
+            include '../component/sidebar.php'; 
+        ?>
  
         <main class="flex-[6] min-w-0 bg-white border-r p-4 lg:p-6 overflow-y-auto">
             <div class="text-xs text-gray-500 mb-4 flex items-center gap-2">

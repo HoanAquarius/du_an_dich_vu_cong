@@ -36,81 +36,15 @@
 </head>
 <body class="bg-[#f8fafc] text-gray-800 h-screen flex flex-col overflow-hidden">
 
-        <header class="bg-[#004a99] h-16 flex items-center justify-between px-6 text-white shrink-0">
-    <!-- Logo và Tiêu đề -->
-    <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-red-600 text-yellow-300 rounded-full flex items-center justify-center font-bold shadow">
-                <i class="fa-solid fa-star text-xs"></i>
-            </div>
-        <div class="flex flex-col">
-            <span class="font-bold text-lg leading-tight">Cổng Dịch vụ công Quốc gia</span>
-            <span class="text-[10px] opacity-90">Kết nối, cung cấp thông tin và dịch vụ công mọi lúc, mọi nơi</span>
-        </div>
-    </div>
-
-    <!-- Phía bên phải -->
-    <div class="flex items-center gap-6">
-        <div class="relative cursor-pointer">
-            <i class="fa-regular fa-bell text-white text-xl"></i>
-            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">3</span>
-        </div>
-        <div class="flex items-center gap-2 cursor-pointer">
-            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <i class="fa-solid fa-user text-white"></i>
-            </div>
-            <span class="font-medium text-sm">Nguyễn Văn A</span>
-            <i class="fa-solid fa-chevron-down text-[10px] opacity-70"></i>
-        </div>
-    </div>
-</header>
+    <?php include 'component/header.php'; ?>
 
     <div class="flex flex-1 overflow-hidden">
         
-        <aside class="w-64 bg-white border-r flex flex-col justify-between shrink-0 overflow-y-auto hidden md:flex">
-            <nav class="p-4 space-y-1">
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 bg-blue-50 text-blue-600 font-medium rounded-lg text-sm">
-                    <i class="fa-solid fa-house w-5 text-center"></i> Trang chủ
-                </a>
-                <a href="./thu_tuc/thu_tuc.php" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-file-lines w-5 text-center"></i> Thủ tục hành chính
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-folder w-5 text-center"></i> Hồ sơ của tôi
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-box-archive w-5 text-center"></i> Kho giấy tờ số
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-credit-card w-5 text-center"></i> Thanh toán trực tuyến
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-circle-info w-5 text-center"></i> Hướng dẫn sử dụng
-                </a>
-                <div class="flex items-center justify-between px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm cursor-pointer">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-regular fa-bell w-5 text-center"></i> Thông báo
-                    </div>
-                    <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">5</span>
-                </div>
-                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-regular fa-circle-question w-5 text-center"></i> Hỗ trợ
-                </a>
-            </nav>
-            <div class="p-4 border-t">
-                <div class="flex items-center gap-3 p-3 border rounded-lg mb-2">
-                    <div class="w-10 h-10 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <div>
-                        <div class="font-bold text-sm">Nguyễn Văn A</div>
-                        <div class="text-xs text-gray-500">Công dân</div>
-                    </div>
-                </div>
-                <button class="w-full flex items-center gap-2 justify-center py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
-                </button>
-            </div>
-        </aside>
+        <?php 
+            $base_path = './';
+            $active_page = 'home';
+            include 'component/sidebar.php'; 
+        ?>
 
         <div class="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex flex-col lg:flex-row gap-6">
@@ -151,45 +85,74 @@
                         </div>
                         
                         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                            <div class="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-50 border border-transparent hover:border-blue-100 transition group">
-                                <div class="w-12 h-12 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-id-card"></i>
-                                </div>
-                                <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">Cấp đổi<br>CCCD</h3>
-                                <p class="text-[10px] text-gray-400">432.104 Hồ sơ đã tiếp nhận</p>
-                            </div>
-                            <div class="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-pink-50 border border-transparent hover:border-pink-100 transition group">
-                                <div class="w-12 h-12 bg-pink-100 text-pink-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-ring"></i>
-                                </div>
-                                <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">Đăng ký<br>cư trú</h3>
-                                <p class="text-[10px] text-gray-400">128.657 Hồ sơ đã tiếp nhận</p>
-                            </div>
-                            <a href="./thu_tuc/dang_ky_khai_sinh.php">
-                            <div class="bg-green-50/50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-green-50 border border-transparent hover:border-green-200 transition group relative overflow-hidden h-full">
-                                <div class="absolute top-0 right-0 bg-green-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-lg">HOT</div>
-                                <div class="w-12 h-12 bg-green-100 text-green-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-baby"></i>
-                                </div>
-                                <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">Đăng ký<br>khai sinh</h3>
-                                <p class="text-[10px] text-gray-400">312.029 Hồ sơ đã tiếp nhận</p>
-                            </div></a>
-                            
-                            <div class="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-orange-50 border border-transparent hover:border-orange-100 transition group">
-                                <div class="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-car"></i>
-                                </div>
-                                <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">Cấp Hộ chiếu <br>phổ thông</h3>
-                                <p class="text-[10px] text-gray-400">267.982 Hồ sơ đã tiếp nhận</p>
-                            </div>
-                            <div class="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-purple-50 border border-transparent hover:border-purple-100 transition group hidden sm:flex">
-                                <div class="w-12 h-12 bg-purple-100 text-purple-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-house-chimney"></i>
-                                </div>
-                                <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">Đăng ký<br>kết hôn</h3>
-                                <p class="text-[10px] text-gray-400">89.341 Hồ sơ đã tiếp nhận</p>
-                            </div>
-                        </div>
+
+    <!-- Cấp đổi CCCD -->
+    <a href="./thu_tuc/cap_doi_cccd.php" class="block h-full">
+        <div class="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-50 border border-transparent hover:border-blue-100 transition group h-full">
+            <div class="w-12 h-12 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-id-card"></i>
+            </div>
+            <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">
+                Cấp đổi<br>CCCD
+            </h3>
+            <p class="text-[10px] text-gray-400">432.104 Hồ sơ đã tiếp nhận</p>
+        </div>
+    </a>
+
+    <!-- Đăng ký cư trú -->
+    <a href="./thu_tuc/dang_ky_cu_tru.php" class="block h-full">
+        <div class="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-pink-50 border border-transparent hover:border-pink-100 transition group h-full">
+            <div class="w-12 h-12 bg-pink-100 text-pink-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-ring"></i>
+            </div>
+            <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">
+                Đăng ký<br>cư trú
+            </h3>
+            <p class="text-[10px] text-gray-400">128.657 Hồ sơ đã tiếp nhận</p>
+        </div>
+    </a>
+
+    <!-- Đăng ký khai sinh -->
+    <a href="./thu_tuc/dang_ky_khai_sinh.php" class="block h-full">
+        <div class="bg-green-50/50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-green-50 border border-transparent hover:border-green-200 transition group relative overflow-hidden h-full">
+            <div class="absolute top-0 right-0 bg-green-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-lg">HOT</div>
+            <div class="w-12 h-12 bg-green-100 text-green-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-baby"></i>
+            </div>
+            <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">
+                Đăng ký<br>khai sinh
+            </h3>
+            <p class="text-[10px] text-gray-400">312.029 Hồ sơ đã tiếp nhận</p>
+        </div>
+    </a>
+
+    <!-- Cấp hộ chiếu -->
+    <a href="./thu_tuc/cap_ho_chieu.php" class="block h-full">
+        <div class="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-orange-50 border border-transparent hover:border-orange-100 transition group h-full">
+            <div class="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-car"></i>
+            </div>
+            <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">
+                Cấp Hộ chiếu<br>phổ thông
+            </h3>
+            <p class="text-[10px] text-gray-400">267.982 Hồ sơ đã tiếp nhận</p>
+        </div>
+    </a>
+
+    <!-- Đăng ký kết hôn -->
+    <a href="./thu_tuc/dang_ky_ket_hon.php" class="block h-full hidden sm:block">
+        <div class="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-purple-50 border border-transparent hover:border-purple-100 transition group h-full">
+            <div class="w-12 h-12 bg-purple-100 text-purple-500 rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-house-chimney"></i>
+            </div>
+            <h3 class="font-semibold text-gray-800 text-sm mb-1 leading-tight">
+                Đăng ký<br>kết hôn
+            </h3>
+            <p class="text-[10px] text-gray-400">89.341 Hồ sơ đã tiếp nhận</p>
+        </div>
+    </a>
+
+</div>
                     </div>
 
                     <div class="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100">
