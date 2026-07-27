@@ -3,7 +3,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
+<<<<<<< HEAD
+-- Thời gian đã tạo: Th7 24, 2026 lúc 02:57 AM
+=======
 -- Thời gian đã tạo: Th7 24, 2026 lúc 02:08 AM
+>>>>>>> main
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
