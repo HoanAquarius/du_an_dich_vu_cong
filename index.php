@@ -86,6 +86,520 @@
                         
                         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
 
+                        <!-- Chèn ô dịch vụ AI này vào trong thẻ grid dịch vụ công trực tuyến của bạn -->
+<div onclick="openAiModal()" class="block h-full cursor-pointer">
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-xl p-4 flex flex-col items-center justify-center text-center hover:from-blue-100 hover:to-indigo-100 border border-blue-200/60 hover:border-blue-300 transition group relative overflow-hidden h-full shadow-sm shadow-blue-500/5">
+        <div class="absolute top-0 left-0 bg-blue-600 text-white text-[8px] font-bold px-2 py-0.5 rounded-br-lg tracking-wider">CÔNG NGHỆ AI</div>
+        <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-transform shadow-md shadow-blue-600/20">
+            <i class="fa-solid fa-robot"></i>
+        </div>
+        <h3 class="font-bold text-blue-900 text-sm mb-1 leading-tight">
+            Nộp hồ sơ<br>Bằng ảnh chụp
+        </h3>
+        <p class="text-[10px] text-blue-500 font-medium">Tự động quét & điền form</p>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL HỘP THOẠI AI (Đặt đoạn này ở cuối cùng, ngay trước thẻ đóng </body>) -->
+<!-- ========================================================================= -->
+<div id="ai-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <!-- Lớp nền mờ -->
+    <div onclick="closeAiModal()" class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+    
+    <!-- Nội dung Modal -->
+    <div class="bg-white rounded-2xl w-full max-w-xl mx-4 relative z-10 shadow-2xl flex flex-col max-h-[85vh] transition-all transform scale-95 duration-200" id="modal-content">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b flex items-center justify-between bg-gray-50 rounded-t-2xl">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 text-sm">Trợ lý Số hóa Biểu mẫu AI</h3>
+                    <p class="text-[11px] text-gray-500">Tự động nhận diện và điền thông tin công dân</p>
+                </div>
+            </div>
+            <button onclick="closeAiModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-200/50 transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Khung nội dung có thanh cuộn độc lập -->
+        <div class="p-6 overflow-y-auto flex-1">
+    <!-- Thẻ input file ẩn dùng chung cho hệ thống -->
+    <input type="file" id="file-input" accept="image/*" class="hidden">
+    
+    <!-- THANH CHUYỂN TAB GIAO DIỆN -->
+    <div class="flex border-b border-gray-200 mb-4 text-xs font-semibold">
+        <button type="button" onclick="switchAiTab('scan')" id="tab-btn-scan" class="flex-1 py-2 text-blue-600 border-b-2 border-blue-600 text-center transition focus:outline-none">
+            <i class="fa-solid fa-camera mr-1"></i> Số hóa biểu mẫu mới
+        </button>
+        <button type="button" onclick="switchAiTab('saved')" id="tab-btn-saved" class="flex-1 py-2 text-gray-500 hover:text-gray-700 text-center transition focus:outline-none">
+            <i class="fa-solid fa-folder-open mr-1"></i> Biểu mẫu đã lưu của tôi
+        </button>
+    </div>
+
+    <!-- NỘI DUNG TAB 1: Quét ảnh mới -->
+    <div id="tab-content-scan" class="space-y-4">
+        <div id="upload-zone" class="border-2 border-dashed border-blue-200 bg-blue-50/10 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition">
+            <div class="w-14 h-14 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3 border border-blue-100">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <p class="text-sm font-semibold text-gray-700">Chụp hoặc tải ảnh biểu mẫu lên</p>
+            <p class="text-xs text-gray-400 mt-1">Hệ thống hỗ trợ ảnh chụp đơn, phôi giấy tờ chưa có sẵn mẫu điện tử</p>
+        </div>
+
+        <div id="loading-zone" class="hidden py-12 text-center">
+            <div class="inline-block relative w-12 h-12 mb-4">
+                <div class="absolute inset-0 rounded-full border-4 border-blue-200 animate-ping opacity-25"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+            </div>
+            <p class="text-sm font-semibold text-gray-800">AI đang đọc hiểu cấu trúc biểu mẫu...</p>
+            <p class="text-xs text-gray-400 mt-1">Trích xuất các ô trống và tự động điền thông tin của bạn</p>
+        </div>
+    </div>
+
+    <!-- NỘI DUNG TAB 2: Danh sách các đơn đã lưu để dùng lại nhanh -->
+    <div id="tab-content-saved" class="hidden space-y-3">
+        <p class="text-xs text-gray-500 mb-2">Chọn một biểu mẫu bạn đã từng số hóa trước đây để điền nhanh không cần chụp ảnh lại:</p>
+        
+        <div onclick="taiLaiFormCu('Đơn đăng ký học lái xe ô tô')" class="flex items-center justify-between p-3.5 bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-xl cursor-pointer transition group">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-file-signature text-blue-500 text-base group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-semibold text-gray-700">Đơn đăng ký học lái xe ô tô</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-xs text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+        </div>
+
+        <div onclick="taiLaiFormCu('Đơn xin nghỉ phép')" class="flex items-center justify-between p-3.5 bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-xl cursor-pointer transition group">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-file-prescription text-blue-500 text-base group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-semibold text-gray-700">Đơn xin nghỉ phép</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-xs text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+        </div>
+    </div>
+
+    <!-- VÙNG CHUNG: Form động sinh ra bởi AI -->
+    <div id="dynamic-form-zone" class="hidden space-y-4">
+        <div class="bg-amber-50 border border-amber-200/60 rounded-xl p-3 flex gap-2.5 items-start mb-4">
+            <i class="fa-solid fa-circle-info text-amber-500 text-sm mt-0.5"></i>
+            <p class="text-xs text-amber-800 leading-normal">
+                Mẫu đơn dưới đây được tạo tự động bởi AI. Những ô tô đậm màu xanh đã được **tự động điền (Auto-fill)** bằng dữ liệu của công dân **Nguyễn Văn A**. Vui lòng kiểm tra lại trước khi nộp.
+            </p>
+        </div>
+        <h4 id="detected-form-title" class="text-sm font-bold text-blue-900 bg-blue-50/50 px-3 py-2 rounded-lg inline-block"></h4>
+        <form id="ai-generated-form" class="grid grid-cols-1 gap-4 pt-2">
+            <!-- JavaScript kết xuất input nằm ở phần sau -->
+        </form>
+    </div>
+</div>
+
+
+        <!-- Footer điều khiển hành động -->
+        <div class="px-6 py-3.5 border-t bg-gray-50 flex justify-end gap-2.5 rounded-b-2xl">
+            <button onclick="closeAiModal()" class="px-4 py-2 border border-gray-200 bg-white rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 active:scale-95 transition">Hủy bỏ</button>
+            <button id="submit-form-btn" disabled class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 shadow-sm opacity-50 cursor-not-allowed active:scale-95 transition">Xác nhận nộp hồ sơ</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- JAVASCRIPT XỬ LÝ SỰ KIỆN MODAL VÀ FORM ĐỘNG -->
+<!-- ========================================================================= -->
+<script>
+// Khai báo các phần tử giao diện dùng chung
+const aiModal = document.getElementById('ai-modal');
+const modalContent = document.getElementById('modal-content');
+const uploadZone = document.getElementById('upload-zone');
+const loadingZone = document.getElementById('loading-zone');
+const dynamicFormZone = document.getElementById('dynamic-form-zone');
+const fileInput = document.getElementById('file-input');
+const formContainer = document.getElementById('ai-generated-form');
+const submitBtn = document.getElementById('submit-form-btn');
+const tabContentScan = document.getElementById('tab-content-scan');
+const tabContentSaved = document.getElementById('tab-content-saved');
+
+// Hàm mở hộp thoại trợ lý AI
+function openAiModal() {
+    aiModal.classList.remove('hidden');
+    setTimeout(() => modalContent.classList.remove('scale-95'), 10);
+    resetModalState();
+}
+
+// Hàm đóng hộp thoại trợ lý AI
+function closeAiModal() {
+    modalContent.classList.add('scale-95');
+    setTimeout(() => aiModal.classList.add('hidden'), 150);
+}
+
+// Thiết lập lại trạng thái ban đầu cho Modal khi mở lên
+function resetModalState() {
+    switchAiTab('scan'); 
+    uploadZone.classList.remove('hidden');
+    loadingZone.classList.add('hidden');
+    dynamicFormZone.classList.add('hidden');
+    if (fileInput) fileInput.value = '';
+    if (formContainer) formContainer.innerHTML = '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Xác nhận nộp hồ sơ";
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+// Sự kiện click vào vùng nét đứt để mở cửa sổ chọn file ảnh của thiết bị
+if (uploadZone && fileInput) {
+    uploadZone.onclick = (e) => {
+        e.preventDefault();
+        fileInput.click();
+    };
+}
+
+// Hàm xử lý chuyển đổi giao diện qua lại giữa các Tab
+function switchAiTab(tabName) {
+    const btnScan = document.getElementById('tab-btn-scan');
+    const btnSaved = document.getElementById('tab-btn-saved');
+    
+    // Nếu form động đang hiển thị, ẩn tạm đi để người dùng đổi thao tác mẫu
+    if (dynamicFormZone) dynamicFormZone.classList.add('hidden');
+
+    if (tabName === 'scan') {
+        if (btnScan) btnScan.className = "flex-1 py-2 text-blue-600 border-b-2 border-blue-600 text-center transition focus:outline-none";
+        if (btnSaved) btnSaved.className = "flex-1 py-2 text-gray-500 hover:text-gray-700 text-center transition focus:outline-none";
+        if (tabContentScan) tabContentScan.classList.remove('hidden');
+        if (uploadZone) uploadZone.classList.remove('hidden');
+        if (tabContentSaved) tabContentSaved.classList.add('hidden');
+    } else {
+        if (btnScan) btnScan.className = "flex-1 py-2 text-gray-500 hover:text-gray-700 text-center transition focus:outline-none";
+        if (btnSaved) btnSaved.className = "flex-1 py-2 text-blue-600 border-b-2 border-blue-600 text-center transition focus:outline-none";
+        if (tabContentScan) tabContentScan.classList.add('hidden');
+        if (tabContentSaved) tabContentSaved.classList.remove('hidden');
+    }
+}
+
+// Lắng nghe sự kiện khi người dùng chọn xong file ảnh từ thiết bị
+if (fileInput) {
+    fileInput.onchange = async (e) => {
+        const file = e.target.files[0]; // Chỉ định lấy tệp tin đầu tiên
+        if (!file) return;
+
+        // Ẩn khung chọn ảnh và hiển thị màn hình chờ xoay tròn của AI
+        if (uploadZone) uploadZone.classList.add('hidden');
+        if (loadingZone) loadingZone.classList.remove('hidden');
+
+        const formData = new FormData();
+        formData.append('form_image', file);
+
+        try {
+            // Gửi tệp ảnh sang file backend xử lý Google Gemini API
+            const response = await fetch('process_ai_form.php', { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (loadingZone) loadingZone.classList.add('hidden');
+
+            if (result.success) {
+                renderAiForm(result.data); // Vẽ form động lên màn hình
+            } else {
+                alert('Có lỗi xảy ra từ máy chủ AI: ' + result.message);
+                resetModalState();
+            }
+        } catch (error) {
+            alert('Không thể kết nối đến máy chủ xử lý AI.');
+            resetModalState();
+        }
+    };
+}
+
+// Hàm tiếp nhận dữ liệu JSON cấu trúc của đơn và kết xuất thành các ô Input thực tế
+function renderAiForm(data) {
+    if (tabContentScan) tabContentScan.classList.add('hidden');
+    if (tabContentSaved) tabContentSaved.classList.add('hidden');
+    if (dynamicFormZone) dynamicFormZone.classList.remove('hidden');
+    
+    document.getElementById('detected-form-title').innerText = "📄 Loại đơn: " + data.form_name;
+    formContainer.innerHTML = ''; // Làm sạch các trường đơn cũ trước khi vẽ
+    
+    data.fields.forEach(field => {
+        const fieldWrapper = document.createElement('div');
+        fieldWrapper.className = 'flex flex-col gap-1.5';
+        
+        // Kiểm tra xem ô này có dữ liệu tự điền (Auto-fill) hay không
+        let hasValue = field.suggested_value && field.suggested_value.trim() !== '';
+        // Nếu có dữ liệu điền sẵn, nhuộm màu nền xanh để công dân nhận biết hệ thống hỗ trợ
+        let inputBgClass = hasValue 
+            ? 'bg-blue-50/70 border-blue-200 text-blue-900 font-medium focus:bg-white focus:border-blue-500' 
+            : 'bg-gray-50 border-gray-200 text-gray-800 focus:bg-white focus:border-blue-500';
+
+        fieldWrapper.innerHTML = `
+            <label class="text-[11px] font-bold text-gray-600 uppercase tracking-wide">${field.label}</label>
+            <input type="${field.type}" 
+                   name="${field.id}" 
+                   value="${field.suggested_value || ''}" 
+                   class="w-full ${inputBgClass} border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none shadow-sm transition">
+        `;
+        formContainer.appendChild(fieldWrapper);
+    });
+
+    // Mở khóa kích hoạt nút bấm xác nhận gửi đơn lên cơ quan
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+// Hàm giả lập lấy phôi cũ từ hệ thống dữ liệu đã lưu ở Tab 2 không tốn tiền quét lại ảnh
+function taiLaiFormCu(tenForm) {
+    const mockSavedData = {
+        form_name: tenForm,
+        fields: [
+            { id: "full_name", label: "Họ và tên công dân nộp đơn", type: "text", suggested_value: "Nguyễn Văn A" },
+            { id: "dob", label: "Ngày tháng năm sinh", type: "text", suggested_value: "15/10/1995" },
+            { id: "identity_number", label: "Số thẻ CCCD/Hộ chiếu", type: "text", suggested_value: "012345678901" },
+            { id: "reason", label: "Lý do nộp đơn hoặc nội dung đề xuất", type: "text", suggested_value: "" }
+        ]
+    };
+    renderAiForm(mockSavedData); 
+}
+
+// Xử lý sự kiện bấm xác nhận để đóng gói form đẩy ngầm sang MySQL
+if (submitBtn) {
+    submitBtn.onclick = async () => {
+        const formData = new FormData(formContainer);
+        const formFieldsData = Object.fromEntries(formData.entries());
+        const formName = document.getElementById('detected-form-title').innerText.replace("📄 Loại đơn: ", "");
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Đang lưu hồ sơ vào Database...";
+
+        try {
+            // Đẩy dữ liệu JSON cấu trúc sang file xử lý kết nối MySQL của bạn
+            const response = await fetch('save_ai_form.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    form_name: formName,
+                    fields_data: formFieldsData
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('🎉 Chúc mừng! Hồ sơ số hóa bằng AI của bạn đã được lưu vào bảng ho_so_ai thành công.');
+                closeAiModal();
+                window.location.reload(); // Tải lại trang chủ
+            } else {
+                alert('Lỗi lưu trữ dữ liệu: ' + result.message);
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Xác nhận nộp hồ sơ";
+            }
+        } catch (error) {
+            alert('Không thể kết nối đến máy chủ lưu trữ dữ liệu MySQL.');
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Xác nhận nộp hồ sơ";
+        }
+    };
+}
+
+// Hàm mở hộp thoại trợ lý AI
+function openAiModal() {
+    aiModal.classList.remove('hidden');
+    setTimeout(() => modalContent.classList.remove('scale-95'), 10);
+    resetModalState();
+}
+
+// Hàm đóng hộp thoại trợ lý AI
+function closeAiModal() {
+    modalContent.classList.add('scale-95');
+    setTimeout(() => aiModal.classList.add('hidden'), 150);
+}
+
+// Thiết lập lại trạng thái ban đầu cho Modal khi mở lên
+function resetModalState() {
+    switchAiTab('scan'); 
+    uploadZone.classList.remove('hidden');
+    loadingZone.classList.add('hidden');
+    dynamicFormZone.classList.add('hidden');
+    if (fileInput) fileInput.value = '';
+    if (formContainer) formContainer.innerHTML = '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Xác nhận nộp hồ sơ";
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+// Sự kiện click vào vùng nét đứt để mở cửa sổ chọn file ảnh của thiết bị
+if (uploadZone && fileInput) {
+    uploadZone.onclick = (e) => {
+        e.preventDefault();
+        fileInput.click();
+    };
+}
+
+// Hàm xử lý chuyển đổi giao diện qua lại giữa các Tab
+function switchAiTab(tabName) {
+    const btnScan = document.getElementById('tab-btn-scan');
+    const btnSaved = document.getElementById('tab-btn-saved');
+    
+    // Nếu form động đang hiển thị, ẩn tạm đi để người dùng đổi thao tác mẫu
+    if (dynamicFormZone) dynamicFormZone.classList.add('hidden');
+
+    if (tabName === 'scan') {
+        if (btnScan) btnScan.className = "flex-1 py-2 text-blue-600 border-b-2 border-blue-600 text-center transition focus:outline-none";
+        if (btnSaved) btnSaved.className = "flex-1 py-2 text-gray-500 hover:text-gray-700 text-center transition focus:outline-none";
+        if (tabContentScan) tabContentScan.classList.remove('hidden');
+        if (uploadZone) uploadZone.classList.remove('hidden');
+        if (tabContentSaved) tabContentSaved.classList.add('hidden');
+    } else {
+        if (btnScan) btnScan.className = "flex-1 py-2 text-gray-500 hover:text-gray-700 text-center transition focus:outline-none";
+        if (btnSaved) btnSaved.className = "flex-1 py-2 text-blue-600 border-b-2 border-blue-600 text-center transition focus:outline-none";
+        if (tabContentScan) tabContentScan.classList.add('hidden');
+        if (tabContentSaved) tabContentSaved.classList.remove('hidden');
+    }
+}
+
+// Lắng nghe sự kiện khi người dùng chọn xong file ảnh từ thiết bị
+if (fileInput) {
+    fileInput.onchange = async (e) => {
+        const file = e.target.files[0]; // Chỉ định lấy tệp tin đầu tiên
+        if (!file) return;
+
+        // Ẩn khung chọn ảnh và hiển thị màn hình chờ xoay tròn của AI
+        if (uploadZone) uploadZone.classList.add('hidden');
+        if (loadingZone) loadingZone.classList.remove('hidden');
+
+        const formData = new FormData();
+        formData.append('form_image', file);
+
+        try {
+            // Gửi tệp ảnh sang file backend xử lý Google Gemini API
+            const response = await fetch('process_ai_form.php', { method: 'POST', body: formData });
+            const result = await response.json();
+
+            if (loadingZone) loadingZone.classList.add('hidden');
+
+            if (result.success) {
+                renderAiForm(result.data); // Vẽ form động lên màn hình
+            } else {
+                alert('Có lỗi xảy ra từ máy chủ AI: ' + result.message);
+                resetModalState();
+            }
+        } catch (error) {
+            alert('Không thể kết nối đến máy chủ xử lý AI.');
+            resetModalState();
+        }
+    };
+}
+
+// Hàm tiếp nhận dữ liệu JSON cấu trúc của đơn và kết xuất thành các ô Input thực tế
+function renderAiForm(data) {
+    if (tabContentScan) tabContentScan.classList.add('hidden');
+    if (tabContentSaved) tabContentSaved.classList.add('hidden');
+    if (dynamicFormZone) dynamicFormZone.classList.remove('hidden');
+    
+    document.getElementById('detected-form-title').innerText = "📄 Loại đơn: " + data.form_name;
+    formContainer.innerHTML = ''; // Làm sạch các trường đơn cũ trước khi vẽ
+    
+    data.fields.forEach(field => {
+        const fieldWrapper = document.createElement('div');
+        fieldWrapper.className = 'flex flex-col gap-1.5';
+        
+        // Kiểm tra xem ô này có dữ liệu tự điền (Auto-fill) hay không
+        let hasValue = field.suggested_value && field.suggested_value.trim() !== '';
+        // Nếu có dữ liệu điền sẵn, nhuộm màu nền xanh để công dân nhận biết hệ thống hỗ trợ
+        let inputBgClass = hasValue 
+            ? 'bg-blue-50/70 border-blue-200 text-blue-900 font-medium focus:bg-white focus:border-blue-500' 
+            : 'bg-gray-50 border-gray-200 text-gray-800 focus:bg-white focus:border-blue-500';
+
+        fieldWrapper.innerHTML = `
+            <label class="text-[11px] font-bold text-gray-600 uppercase tracking-wide">${field.label}</label>
+            <input type="${field.type}" 
+                   name="${field.id}" 
+                   value="${field.suggested_value || ''}" 
+                   class="w-full ${inputBgClass} border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none shadow-sm transition">
+        `;
+        formContainer.appendChild(fieldWrapper);
+    });
+
+    // Mở khóa kích hoạt nút bấm xác nhận gửi đơn lên cơ quan
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+// Hàm giả lập lấy phôi cũ từ hệ thống dữ liệu đã lưu ở Tab 2 không tốn tiền quét lại ảnh
+// --- THAY THẾ HOÀN TOÀN HÀM taiLaiFormCu CŨ TRONG FILE index.php BẰNG ĐOẠN NÀY ---
+async function taiLaiFormCu(tenForm) {
+    // Hiển thị trạng thái chờ trên tab hoặc chuyển sang giao diện loading nếu cần
+    document.getElementById('tab-content-scan').classList.add('hidden');
+    document.getElementById('tab-content-saved').classList.add('hidden');
+    
+    try {
+        // Gọi API lấy phôi động được sinh tự động từ database MySQL
+        const response = await fetch(`get_saved_template.php?form_name=${encodeURIComponent(tenForm)}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            // Vẽ lại chính xác 100% tất cả các ô dữ liệu cũ do AI lưu
+            renderAiForm(result.data); 
+        } else {
+            alert('Thông báo: ' + result.message);
+            resetModalState();
+        }
+    } catch (error) {
+        alert('Không thể kết nối đến máy chủ lấy cấu trúc biểu mẫu.');
+        resetModalState();
+    }
+}
+
+
+// Xử lý sự kiện bấm xác nhận để đóng gói form đẩy ngầm sang MySQL
+if (submitBtn) {
+    submitBtn.onclick = async () => {
+        const formData = new FormData(formContainer);
+        const formFieldsData = Object.fromEntries(formData.entries());
+        const formName = document.getElementById('detected-form-title').innerText.replace("📄 Loại đơn: ", "");
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Đang lưu hồ sơ vào Database...";
+
+        try {
+            // Đẩy dữ liệu JSON cấu trúc sang file xử lý kết nối MySQL của bạn
+            const response = await fetch('save_ai_form.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    form_name: formName,
+                    fields_data: formFieldsData
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('🎉 Chúc mừng! Hồ sơ số hóa bằng AI của bạn đã được lưu vào bảng ho_so_ai thành công.');
+                closeAiModal();
+                window.location.reload(); // Tải lại trang chủ
+            } else {
+                alert('Lỗi lưu trữ dữ liệu: ' + result.message);
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Xác nhận nộp hồ sơ";
+            }
+        } catch (error) {
+            alert('Không thể kết nối đến máy chủ lưu trữ dữ liệu MySQL.');
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Xác nhận nộp hồ sơ";
+        }
+    };
+}
+
+</script>
+
+
     <!-- Cấp đổi CCCD -->
     <a href="./thu_tuc/cap_doi_cccd.php" class="block h-full">
         <div class="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-50 border border-transparent hover:border-blue-100 transition group h-full">

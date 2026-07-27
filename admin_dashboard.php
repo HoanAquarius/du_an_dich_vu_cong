@@ -3,13 +3,26 @@
 require_once __DIR__ . '/config/database.php';
 
 try {
-    // Truy vấn lấy toàn bộ hồ sơ, mới nhất xếp lên đầu
-    $stmt = $pdo->query("SELECT * FROM ho_so ORDER BY created_at DESC");
+    // 1. Truy vấn lấy toàn bộ hồ sơ thông thường
+    $stmt = $pdo->query("SELECT *, 'truong_hop_thuong' as source_type FROM ho_so ORDER BY created_at DESC");
     $danh_sach_ho_so = $stmt->fetchAll();
+
+    // 2. Truy vấn lấy thêm hồ sơ được nộp bằng công nghệ AI
+    // Dùng UNION hoặc câu lệnh SELECT riêng để dễ bóc tách JSON dữ liệu đơn
+    $stmt_ai = $pdo->query("SELECT id, user_id, form_name, data_content, created_at, status, 'ai_form' as source_type FROM ho_so_ai ORDER BY created_at DESC");
+    $danh_sach_ho_so_ai = $stmt_ai->fetchAll();
+
+    // Gộp hai danh sách và sắp xếp theo thời gian mới nhất lên đầu
+    $all_records = array_merge($danh_sach_ho_so, $danh_sach_ho_so_ai);
+    usort($all_records, function($a, $b) {
+        return strtotime($b['created_at']) - strtotime($a['created_at']);
+    });
+
 } catch (PDOException $e) {
     die("Lỗi truy xuất dữ liệu: " . $e->getMessage());
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -172,95 +185,169 @@ try {
  
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                  
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 lg:col-span-2 flex flex-col overflow-hidden">
-                     
-                    <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-4 shrink-0">
-                        <h2 id="table-title" class="font-bold text-gray-800 text-base">Danh sách hồ sơ - Tất cả</h2>
-                        <button class="text-xs text-blue-600 hover:underline font-medium"><i class="fa-solid fa-arrows-rotate mr-1"></i> Tải lại</button>
-                    </div>
- 
-                    <div class="overflow-x-auto flex-1">
-                        <table class="w-full text-left border-collapse" id="ticket-table">
-                            <thead>
-                                <tr class="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase bg-gray-50/50">
-                                    <th class="py-3 px-4">Mã hồ sơ</th>
-                                    <th class="py-3 px-4">Thủ tục hành chính</th>
-                                    <th class="py-3 px-4">Công dân</th>
-                                    <th class="py-3 px-4">Thời gian còn lại (SLA)</th>
-                                    <th class="py-3 px-4 text-right">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-sm divide-y divide-gray-50" id="table-body">
-                                
-                                <?php foreach ($danh_sach_ho_so as $hoso): 
-                                    // Chuyển đổi định dạng thời gian MySQL sang JS để Countdown không bị lỗi NaN
-                                    $js_target_time = str_replace(' ', 'T', $hoso['target_time']);
-                                ?>
-                                <tr class="hover:bg-gray-50/50 transition-colors ticket-row" id="row-<?php echo strtolower($hoso['ma_ho_so']); ?>" data-status="<?php echo $hoso['trang_thai']; ?>">
-                                    <td class="py-3.5 px-4 font-mono font-medium text-xs text-gray-600 search-target">
-                                        <?php echo htmlspecialchars($hoso['ma_ho_so']); ?>
-                                    </td>
-                                    <td class="py-3.5 px-4 font-medium text-gray-800">
-                                        <?php echo htmlspecialchars($hoso['thu_tuc']); ?>
-                                    </td>
-                                    <td class="py-3.5 px-4 text-gray-500 search-target">
-                                        <?php echo htmlspecialchars($hoso['cong_dan']); ?>
-                                    </td>
-                                    <td class="py-3.5 px-4">
-                                        <div class="countdown-timer flex items-center gap-1.5 font-mono text-xs font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full w-fit" data-target-time="<?php echo $js_target_time; ?>">
-                                            <i class="fa-regular fa-clock"></i>
-                                            <span class="timer-display">Đang tính...</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right">
-                                        <button onclick="duyetHoSo('<?php echo htmlspecialchars($hoso['ma_ho_so']); ?>', '<?php echo htmlspecialchars($hoso['thu_tuc']); ?>')" class="text-xs font-semibold bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition">
-                                            Duyệt hồ sơ
-                                        </button>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 lg:col-span-2 flex flex-col overflow-hidden">
+         
+        <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-4 shrink-0">
+            <h2 id="table-title" class="font-bold text-gray-800 text-base">Danh sách hồ sơ - Tất cả</h2>
+            <button class="text-xs text-blue-600 hover:underline font-medium"><i class="fa-solid fa-arrows-rotate mr-1"></i> Tải lại</button>
+        </div>
 
-                            </tbody>
-                        </table>
-                    </div>
+        <div class="overflow-x-auto flex-1">
+            <table class="w-full text-left border-collapse" id="ticket-table">
+                <thead>
+                    <tr class="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase bg-gray-50/50">
+                        <th class="py-3 px-4">Mã hồ sơ</th>
+                        <th class="py-3 px-4">Thủ tục hành chính</th>
+                        <th class="py-3 px-4">Công dân</th>
+                        <th class="py-3 px-4">Phương thức</th>
+                        <th class="py-3 px-4">Thời gian còn lại (SLA)</th>
+                        <th class="py-3 px-4 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm divide-y divide-gray-50" id="table-body">
+                    
+                    <?php foreach ($all_records as $hoso): 
+                        $is_ai = ($hoso['source_type'] === 'ai_form');
+                        
+                        $ma_ho_so = $is_ai ? ('AI-' . $hoso['id']) : $hoso['ma_ho_so'];
+                        $thu_tuc = $is_ai ? $hoso['form_name'] : $hoso['thu_tuc'];
+                        $cong_dan = $is_ai ? 'Nguyễn Văn A' : $hoso['cong_dan'];
+                        $trang_thai = $is_ai ? $hoso['status'] : $hoso['trang_thai'];
+                        
+                        $target_time = $is_ai ? date('Y-m-d H:i:s', strtotime($hoso['created_at'] . ' +1 day')) : $hoso['target_time'];
+                        $js_target_time = str_replace(' ', 'T', $target_time);
+                    ?>
+                    <tr class="hover:bg-gray-50/50 transition-colors ticket-row" id="row-<?php echo strtolower($ma_ho_so); ?>" data-status="<?php echo $trang_thai; ?>">
+                        <td class="py-3.5 px-4 font-mono font-medium text-xs text-gray-600 search-target">
+                            <?php echo htmlspecialchars($ma_ho_so); ?>
+                        </td>
+                        <td class="py-3.5 px-4 font-medium text-gray-800">
+                            <?php echo htmlspecialchars($thu_tuc); ?>
+                        </td>
+                        <td class="py-3.5 px-4 text-gray-500 search-target">
+                            <?php echo htmlspecialchars($cong_dan); ?>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <?php if ($is_ai): ?>
+                                <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-100">
+                                    <i class="fa-solid fa-robot text-[9px]"></i> AI Số hóa
+                                </span>
+                            <?php else: ?>
+                                <span class="inline-flex items-center gap-1 bg-gray-150 text-gray-600 text-[10px] font-medium px-2 py-0.5 rounded-full">
+                                    Trực tuyến
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <div class="countdown-timer flex items-center gap-1.5 font-mono text-xs font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full w-fit" data-target-time="<?php echo $js_target_time; ?>">
+                                <i class="fa-regular fa-clock"></i>
+                                <span class="timer-display">Đang tính...</span>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4 text-right">
+                            <?php if ($is_ai): ?>
+                                <button onclick="viewAiDetails(<?php echo htmlspecialchars(json_encode($hoso)); ?>)" class="text-xs font-semibold bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition shadow-sm">
+                                    Xem đơn AI
+                                </button>
+                            <?php else: ?>
+                                <button onclick="duyetHoSo('<?php echo htmlspecialchars($ma_ho_so); ?>', '<?php echo htmlspecialchars($thu_tuc); ?>')" class="text-xs font-semibold bg-gray-600 text-white px-3 py-1.5 rounded-md hover:bg-gray-700 transition">
+                                    Duyệt hồ sơ
+                                </button>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col items-center">
+            <div class="w-full text-left mb-4"><h2 class="font-bold text-gray-800 text-sm">Tỷ lệ xử lý đúng hạn (SLA)</h2></div>
+            <div class="relative w-36 h-36 flex items-center justify-center">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <path class="text-gray-100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="text-emerald-500" stroke-dasharray="92.4, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div class="absolute text-center">
+                    <div class="text-2xl font-bold text-gray-800">92.4%</div>
+                    <div class="text-[10px] text-gray-400 font-medium">Đúng hạn</div>
                 </div>
- 
-                <div class="space-y-6">
-                    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col items-center">
-                        <div class="w-full text-left mb-4"><h2 class="font-bold text-gray-800 text-sm">Tỷ lệ xử lý đúng hạn (SLA)</h2></div>
-                        <div class="relative w-36 h-36 flex items-center justify-center">
-                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                <path class="text-gray-100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path class="text-emerald-500" stroke-dasharray="92.4, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            </svg>
-                            <div class="absolute text-center">
-                                <div class="text-2xl font-bold text-gray-800">92.4%</div>
-                                <div class="text-[10px] text-gray-400 font-medium">Đúng hạn</div>
-                            </div>
-                        </div>
-                        <div class="w-full grid grid-cols-3 gap-2 text-center mt-5 pt-4 border-t border-gray-50 text-[11px]">
-                            <div><span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span><span class="text-gray-400 font-medium">Đúng hạn</span><div class="font-bold text-gray-700 mt-0.5">118</div></div>
-                            <div><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1"></span><span class="text-gray-400 font-medium">Sắp hạn</span><div class="font-bold text-gray-700 mt-0.5">5</div></div>
-                            <div><span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1"></span><span class="text-gray-400 font-medium">Quá hạn</span><div class="font-bold text-gray-700 mt-0.5">5</div></div>
-                        </div>
-                    </div>
- 
-                    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-                        <h2 class="font-bold text-gray-800 text-sm mb-4">Phân bổ hồ sơ trong ca trực</h2>
-                        <div class="space-y-3.5 text-xs">
-                            <div>
-                                <div class="flex justify-between font-medium text-gray-700 mb-1"><span>Nguyễn Văn B (Bạn)</span><span class="font-bold">28 hồ sơ</span></div>
-                                <div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-blue-600 h-1.5 rounded-full" style="width: 75%"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between font-medium text-gray-600 mb-1"><span>Trần Thị Mai</span><span class="font-bold">24 hồ sơ</span></div>
-                                <div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-blue-400 h-1.5 rounded-full" style="width: 65%"></div></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
- 
             </div>
+            <div class="w-full grid grid-cols-3 gap-2 text-center mt-5 pt-4 border-t border-gray-50 text-[11px]">
+                <div><span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span><span class="text-gray-400 font-medium">Đúng hạn</span><div class="font-bold text-gray-700 mt-0.5">118</div></div>
+                <div><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1"></span><span class="text-gray-400 font-medium">Sắp hạn</span><div class="font-bold text-gray-700 mt-0.5">5</div></div>
+                <div><span class="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1"></span><span class="text-gray-400 font-medium">Quá hạn</span><div class="font-bold text-gray-700 mt-0.5">5</div></div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h2 class="font-bold text-gray-800 text-sm mb-4">Phân bổ hồ sơ trong ca trực</h2>
+            <div class="space-y-3.5 text-xs">
+                <div>
+                    <div class="flex justify-between font-medium text-gray-700 mb-1"><span>Nguyễn Văn B (Bạn)</span><span class="font-bold">28 hồ sơ</span></div>
+                    <div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-blue-600 h-1.5 rounded-full" style="width: 75%"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between font-medium text-gray-600 mb-1"><span>Trần Thị Mai</span><span class="font-bold">24 hồ sơ</span></div>
+                    <div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-blue-400 h-1.5 rounded-full" style="width: 65%"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL XEM CHI TIẾT NỘI DUNG ĐƠN AI (Chèn đoạn này xuống cuối file trước thẻ đóng </body>) -->
+<!-- ========================================================================= -->
+<div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div onclick="closeDetailModal()" class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
+    <div class="bg-white rounded-2xl w-full max-w-md mx-4 relative z-10 shadow-xl flex flex-col max-h-[80vh]">
+        <div class="px-5 py-4 border-b flex items-center justify-between bg-gray-50 rounded-t-2xl">
+            <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+                <i class="fa-solid fa-robot text-blue-600"></i> Nội dung biểu mẫu số hóa AI
+            </h4>
+            <button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-5 overflow-y-auto flex-1 space-y-4" id="modal-fields-container">
+            <!-- Dữ liệu trường đơn dạng Key - Value sẽ tự động đổ vào đây -->
+        </div>
+        <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2 rounded-b-2xl">
+            <button onclick="closeDetailModal()" class="px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-xs font-semibold hover:bg-rose-100 transition">Hủy bỏ</button>
+            <button onclick="alert('Đã duyệt đơn thành công!')" class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 shadow-sm transition">Phê duyệt hồ sơ</button>
+        </div>
+    </div>
+</div>
+<script>
+function viewAiDetails(hoSo) {
+    const modal = document.getElementById('detail-modal');
+    const container = document.getElementById('modal-fields-container');
+    container.innerHTML = ''; // Reset dữ liệu cũ
+    
+    // Giải mã chuỗi JSON chứa nội dung các ô đơn người dân nộp
+    const fieldsData = JSON.parse(hoSo.data_content);
+    
+    // Vẽ giao diện danh sách Key - Value cho cán bộ một cửa đọc
+    for (const [key, value] of Object.entries(fieldsData)) {
+        const item = document.createElement('div');
+        item.className = 'border-b pb-2 flex flex-col gap-0.5';
+        item.innerHTML = `
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">${key.replace(/_/g, ' ')}</span>
+            <span class="text-sm text-gray-800 font-medium">${value || '<span class="text-gray-300 italic">Để trống</span>'}</span>
+        `;
+        container.appendChild(item);
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function closeDetailModal() {
+    document.getElementById('detail-modal').classList.add('hidden');
+}
+</script>
         </div>
     </div>
  
