@@ -1,4 +1,6 @@
+
 <?php
+require_once "./config.php";
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
@@ -8,8 +10,11 @@ function respond(int $status, array $data): void {
     exit();
 }
 
-$apiKey = trim((string) getenv('GEMINI_API_KEY'));
-if ($apiKey === '') {
+// 1. Cấu hình khóa API 
+// LƯU Ý: Thay chuỗi bên dưới bằng API Key chính xác tạo từ Google AI Studio (dạng AIzaSy...)
+$apiKey = $GEMINI_API_KEY;
+
+if (trim($apiKey) === '') {
     respond(500, ['reply' => 'Máy chủ chưa cấu hình GEMINI_API_KEY.']);
 }
 
@@ -21,25 +26,43 @@ if ($message === '' && !$imageBase64) {
     respond(422, ['reply' => 'Vui lòng nhập câu hỏi hoặc tải ảnh giấy tờ.']);
 }
 
-// 1. Chuẩn bị lịch sử hội thoại
+// 2. Chuẩn bị lịch sử hội thoại (Xử lý an toàn bối cảnh)
 $contents = [];
-foreach (array_slice((array) ($input['history'] ?? []), -10) as $turn) {
+$rawHistory = is_array($input['history'] ?? null) ? $input['history'] : [];
+
+foreach (array_slice($rawHistory, -10) as $turn) {
     $role = $turn['role'] ?? '';
-    $text = trim((string) ($turn['parts'][0]['text'] ?? ''));
-    if (($role === 'user' || $role === 'model') && $text !== '') {
-        $contents[] = ['role' => $role, 'parts' => [['text' => $text]]];
+    if ($role !== 'user' && $role !== 'model') {
+        continue;
+    }
+
+    $parts = [];
+    if (isset($turn['parts']) && is_array($turn['parts'])) {
+        foreach ($turn['parts'] as $part) {
+            $text = trim((string) ($part['text'] ?? ''));
+            if ($text !== '') {
+                $parts[] = ['text' => $text];
+            }
+        }
+    }
+
+    if (!empty($parts)) {
+        $contents[] = [
+            'role' => $role,
+            'parts' => $parts
+        ];
     }
 }
 
-// 2. Xử lý phần gửi kèm ảnh (Kiểm tra giấy tờ - Camera AI)
+// 3. Xử lý dữ liệu lượt gửi hiện tại của User
 $userParts = [];
 if ($message !== '') {
     $userParts[] = ['text' => $message];
 }
 
 if ($imageBase64) {
-    if (preg_match('/data:image\/(.*?);base64,(.*)/', $imageBase64, $matches)) {
-        $mimeType = 'image/' . $matches[1];
+    if (preg_match('/^data:(image\/[a-zA-Z0-9\+\-]+);base64,(.*)$/', $imageBase64, $matches)) {
+        $mimeType = $matches[1];
         $dataData = $matches[2];
     } else {
         $mimeType = 'image/jpeg';
@@ -56,7 +79,7 @@ if ($imageBase64) {
 
 $contents[] = ['role' => 'user', 'parts' => $userParts];
 
-// 3. System Instruction chuẩn hóa
+// 4. System Instruction chuẩn hóa
 $systemInstruction = <<<'PROMPT'
 Bạn là “Đắc Lắk Một Cửa AI” – Hệ thống trợ lý hoàn thiện hồ sơ dịch vụ công.
 Mục tiêu: "Nộp đúng ngay lần đầu".
@@ -65,21 +88,22 @@ Nhiệm vụ của bạn:
 1. Định hướng nhu cầu: Hỏi ngắn gọn từng câu để xác định chính xác đối tượng, địa điểm, ngành nghề, và các giấy tờ hiện có.
 2. Tạo Checklist cá nhân hóa: Dùng kí hiệu ✓ (Đã có), ○ (Cần chuẩn bị), ⚠ (Cần kiểm tra/Nguy cơ sai).
 3. Thẩm định ảnh/giấy tờ (khi có hình ảnh): Bắt buộc kiểm tra độ rõ nét, góc chụp, chữ ký, thời hạn và đối chiếu thông tin. Nếu phát hiện lỗi, hãy cảnh báo ngay nguy cơ bị trả lại hồ sơ.
-4. Minh bạch pháp lý: Cuối các hướng dẫn quan trọng, luôn có phần "CĂN CỨ PHÁP LÝ" ghi rõ tên văn bản quy định và cơ quan tiếp nhận tại Đắk Lắk.
+4. Minh bạch pháp lý: Cuối các hướng dẫn quan trọng, luôn có phần "CĂN CỨ PHÁP LÝ" ghi rõ tên văn bản quy định và cơ quan tiếp nhận tại Đắc Lắk.
 
 Quy tắc ứng xử:
 - Ngôn ngữ thân thiện, dễ hiểu, tránh từ ngữ hành chính hóc húa.
 - Không bịa đặt quy định hay lệ phí. Tuyệt đối không lưu giữ dữ liệu cá nhân nhạy cảm.
 PROMPT;
 
-// 4. Payload gửi API
+// 5. Payload gửi API
 $payload = [
-    'system_instruction' => ['parts' => [['text' => $systemInstruction]]],
+    'system_instruction' => [
+        'parts' => [['text' => $systemInstruction]]
+    ],
     'contents' => $contents
 ];
 
-// Dùng model chính thức của Google Gemini API hỗ trợ Vision & Text
-// Dùng model thế hệ mới nhất hỗ trợ cả Văn bản + Hình ảnh (Vision)
+// Cập nhật Endpoint model chính thức hiện tại: gemini-3.6-flash
 $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
 
 $ch = curl_init();
@@ -106,9 +130,14 @@ if ($curlError !== '') {
 
 $result = json_decode((string) $response, true);
 
-// Bổ sung kiểm tra thông báo lỗi từ Google API nếu có
+// Kiểm tra lỗi phản hồi từ API Google
 if (isset($result['error'])) {
-    respond(500, ['reply' => 'Lỗi từ Google API: ' . ($result['error']['message'] ?? 'Chưa xác định')]);
+    $errorMsg = $result['error']['message'] ?? 'Chưa xác định';
+    respond(500, ['reply' => 'Lỗi từ Google API: ' . $errorMsg]);
+}
+
+if ($httpCode !== 200) {
+    respond($httpCode, ['reply' => 'Yêu cầu không thành công, mã phản hồi HTTP: ' . $httpCode]);
 }
 
 $reply = $result['candidates'][0]['content']['parts'][0]['text'] ?? 'Không nhận được phản hồi từ AI.';
